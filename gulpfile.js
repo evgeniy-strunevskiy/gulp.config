@@ -11,6 +11,8 @@ task( 'clean', () => {
     .pipe( rm() )
 })
 
-task( 'copy', series('clean', () =>  {
+task( 'copy', () =>  {
   return src(file).pipe(dest('dist'))}
-))
+)
+
+task('default', series('clean', 'copy'))
