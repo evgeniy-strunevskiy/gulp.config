@@ -1,4 +1,4 @@
-const {src, dest, task} = require('gulp')
+const {src, dest, task, series} = require('gulp')
 const rm = require( 'gulp-rm' ) 
 
 const file = [
@@ -11,8 +11,6 @@ task( 'clean', () => {
     .pipe( rm() )
 })
 
-function copy() {
-  return src(file).pipe(dest('dist'))
-}
-
-exports.copy = copy;
+task( 'copy', series('clean', () =>  {
+  return src(file).pipe(dest('dist'))}
+))
