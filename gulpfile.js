@@ -10,6 +10,7 @@ const autoprefixer = require('gulp-autoprefixer');
 const px2rem = require('gulp-smile-px2rem');
 const gcmq = require('gulp-group-css-media-queries');
 const cleanCSS = require('gulp-clean-css');
+const sourcemaps = require('gulp-sourcemaps');
 
 task("clean", () => {
   return src("dist/**/*", { read: false }).pipe(rm());
@@ -30,6 +31,7 @@ const styles = [
 
 task("styles", () => {
   return src(styles)
+    .pipe(sourcemaps.init())
     .pipe(concat("main.scss"))
     .pipe(sassGlob())
     .pipe(sass().on("error", sass.logError))
@@ -37,6 +39,7 @@ task("styles", () => {
     .pipe(gcmq())
     .pipe(px2rem())
     .pipe(cleanCSS())
+    .pipe(sourcemaps.write())
     .pipe(dest("dist"));
 });
 
