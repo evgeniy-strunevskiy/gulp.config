@@ -12,9 +12,8 @@
   "devDependencies": {
     "gulp": "^4.0.2",
     "gulp-cli": "^2.3.0",
-    "gulp-rm": "^2.0.0"
-  },
-  "dependencies": {
-    "node": "^16.1.0"
+    "gulp-rm": "^2.0.0",
+    "gulp-sass": "^4.1.0",
+    "node-sass": "^6.0.0"
   }
 }
