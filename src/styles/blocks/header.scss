@@ -6,4 +6,14 @@ header {
   color: blue;
   width: 100px;
   border-width: 1px;
+
+  @media (max-width: 768) {
+    width: 70px;
+  }
+}
+
+.class {
+  @media (max-width: 768) {
+    display: block;
+  }
 }
