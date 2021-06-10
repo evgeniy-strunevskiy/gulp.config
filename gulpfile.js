@@ -15,6 +15,9 @@ const babel = require('gulp-babel');
 const uglify = require('gulp-uglify');
 const svgo = require('gulp-svgo');
 const svgSprite = require('gulp-svg-sprite');
+const gulpif = require('gulp-if');
+
+const env = process.env.NODE_ENV;
 
 const {DIST_PATH, SRC_PATH, STYLES_LIBS, JS_LIBS} = require('./gulp.config');
 
@@ -37,15 +40,15 @@ const styles = [
 
 task("styles", () => {
   return src(styles)
-    .pipe(sourcemaps.init())
+    .pipe(gulpif(env === "dev", sourcemaps.init()))
     .pipe(concat("main.min.scss"))
     .pipe(sassGlob())
     .pipe(sass().on("error", sass.logError))
-    .pipe(autoprefixer())
-    .pipe(gcmq())
+    .pipe(gulpif(env === "dev", autoprefixer()))
+    .pipe(gulpif(env === "prod", gcmq()))
     .pipe(px2rem())
-    .pipe(cleanCSS())
-    .pipe(sourcemaps.write())
+    .pipe(gulpif(env === "prod", cleanCSS()))
+    .pipe(gulpif(env === "dev", sourcemaps.write()))
     .pipe(dest(`${DIST_PATH}`))
     .pipe(reload({stream: true}));
   });
@@ -56,15 +59,15 @@ task("styles", () => {
   ]
 
   task('scripts', () => {
-    return src(libs)
-      .pipe(sourcemaps.init())
+    return src([...JS_LIBS, 'src/scripts/*.js'])
+      .pipe(gulpif(env === 'dev', sourcemaps.init()))
       .pipe(concat('main.min.js', {newLine: ';'}))
-      .pipe(babel({
-        presets: ['@babel/env']
-      }))
-      .pipe(uglify())
-      .pipe(sourcemaps.write())
-      .pipe(dest(`${DIST_PATH}`))
+      .pipe(gulpif(env === 'prod', babel({
+          presets: ['@babel/env']
+        })))
+      .pipe(gulpif(env === 'prod', uglify()))
+      .pipe(gulpif(env === 'dev', sourcemaps.write()))
+      .pipe(dest(DIST_PATH))
       .pipe(reload({ stream: true }));
    });
 
@@ -98,12 +101,22 @@ task("styles", () => {
   });
 });
 
-
-watch(`${SRC_PATH}/styles/**/*.scss`, series("styles"));
-watch(`${SRC_PATH}/*.html`, series("copy:html"));
-watch(`${SRC_PATH}/scripts/*.js`, series('scripts'));
-watch(`${SRC_PATH}/images/icons/*.svg`, series('icons'));
+task('watch', () => {
+  watch(`${SRC_PATH}/styles/**/*.scss`, series("styles"));
+  watch(`${SRC_PATH}/*.html`, series("copy:html"));
+  watch(`${SRC_PATH}/scripts/*.js`, series('scripts'));
+  watch(`${SRC_PATH}/images/icons/*.svg`, series('icons'));
+});
 
 task(
   "default", 
-  series("clean", parallel("copy:html", "styles", "scripts", "icons"), "server"));
+  series("clean", 
+  parallel("copy:html", "styles", "scripts", "icons"), 
+  parallel("watch", "server")
+  ));
+
+  task(
+  "build", 
+  series("clean", 
+  parallel("copy:html", "styles", "scripts", "icons")
+  ));
