@@ -12,6 +12,7 @@ const gcmq = require('gulp-group-css-media-queries');
 const cleanCSS = require('gulp-clean-css');
 const sourcemaps = require('gulp-sourcemaps');
 const babel = require('gulp-babel');
+const uglify = require('gulp-uglify');
 
 task("clean", () => {
   return src("dist/**/*", { read: false }).pipe(rm());
@@ -33,7 +34,7 @@ const styles = [
 task("styles", () => {
   return src(styles)
     .pipe(sourcemaps.init())
-    .pipe(concat("main.scss"))
+    .pipe(concat("main.min.scss"))
     .pipe(sassGlob())
     .pipe(sass().on("error", sass.logError))
     .pipe(autoprefixer())
@@ -41,17 +42,27 @@ task("styles", () => {
     .pipe(px2rem())
     .pipe(cleanCSS())
     .pipe(sourcemaps.write())
-    .pipe(dest("dist"));
+    .pipe(dest("dist"))
+    .pipe(reload({stream: true}));
   });
   
+  const libs = [
+    'node_modules/jquery/dist/jquery.js',
+    'src/scripts/*.js'
+  ]
+
   task('scripts', () => {
-    return src('src/scripts/*.js')
-    .pipe(sourcemaps.init())
-    .pipe(concat("main.js", {newLine: ";"}))
-    .pipe(babel({presets: ['@babel/env']}))
-    .pipe(sourcemaps.write())
-    .pipe(dest("dist"))
-})
+    return src(libs)
+      .pipe(sourcemaps.init())
+      .pipe(concat('main.min.js', {newLine: ';'}))
+      .pipe(babel({
+        presets: ['@babel/env']
+      }))
+      .pipe(uglify())
+      .pipe(sourcemaps.write())
+      .pipe(dest('dist'))
+      .pipe(reload({ stream: true }));
+   });
 
 task('server', () => {
   browserSync.init({
@@ -65,5 +76,6 @@ task('server', () => {
 
 watch("src/styles/**/*.scss", series("styles"));
 watch("src/*.html", series("copy:html"));
+watch('./src/scripts/*.js', series('scripts'));
 
 task("default", series("clean", "copy:html", "styles", "scripts", "server"));
