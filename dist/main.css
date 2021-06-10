@@ -311,3 +311,6 @@ header {
 
 .menu:hover {
   opacity: .5; }
+
+h1 {
+  color: red; }
