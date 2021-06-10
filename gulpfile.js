@@ -1,4 +1,4 @@
-const { src, dest, task, series, watch } = require("gulp");
+const { src, dest, task, series, watch, parallel } = require("gulp");
 const rm = require("gulp-rm");
 const sass = require("gulp-sass");
 sass.compiler = require("node-sass");
@@ -13,21 +13,25 @@ const cleanCSS = require('gulp-clean-css');
 const sourcemaps = require('gulp-sourcemaps');
 const babel = require('gulp-babel');
 const uglify = require('gulp-uglify');
+const svgo = require('gulp-svgo');
+const svgSprite = require('gulp-svg-sprite');
+
+const {DIST_PATH, SRC_PATH, STYLES_LIBS, JS_LIBS} = require('./gulp.config');
 
 task("clean", () => {
-  return src("dist/**/*", { read: false }).pipe(rm());
+  return src("${DIST_PATH}/**/*", { read: false }).pipe(rm());
 });
 
 task("copy:html", () => {
-  return src("src/*.html")
-    .pipe(dest("dist"))
+  return src(`${SRC_PATH}/*.html`)
+    .pipe(dest(`${DIST_PATH}`))
     .pipe(reload({stream: true}));
 });
 
 
 
 const styles = [
-  "node_modules/normalize.css/normalize.css",
+  ...STYLES_LIBS,
   "src/styles/main.scss",
 ];
 
@@ -42,12 +46,12 @@ task("styles", () => {
     .pipe(px2rem())
     .pipe(cleanCSS())
     .pipe(sourcemaps.write())
-    .pipe(dest("dist"))
+    .pipe(dest(`${DIST_PATH}`))
     .pipe(reload({stream: true}));
   });
   
   const libs = [
-    'node_modules/jquery/dist/jquery.js',
+    ...JS_LIBS,
     'src/scripts/*.js'
   ]
 
@@ -60,22 +64,46 @@ task("styles", () => {
       }))
       .pipe(uglify())
       .pipe(sourcemaps.write())
-      .pipe(dest('dist'))
+      .pipe(dest(`${DIST_PATH}`))
       .pipe(reload({ stream: true }));
    });
 
-task('server', () => {
+   task('icons', () => {
+    return src(`${SRC_PATH}/images/icons/*.svg`)
+      .pipe(svgo({
+        plugins: [
+          {
+            removeAttrs: {
+              attrs: '(fill|stroke|style|width|height|data.*)'
+            }
+          }
+        ]
+      }))
+      .pipe(svgSprite({
+        mode: {
+          symbol: {
+            sprite: '../sprite.svg'
+          }
+        }
+      }))
+      .pipe(dest(`${DIST_PATH}/images/icons`));
+   });
+
+   task('server', () => {
   browserSync.init({
       server: {
-          baseDir: "./dist"
+          baseDir: `./${DIST_PATH}`
       }, 
       open: false
   });
 });
 
 
-watch("src/styles/**/*.scss", series("styles"));
-watch("src/*.html", series("copy:html"));
-watch('./src/scripts/*.js', series('scripts'));
+watch(`${SRC_PATH}/styles/**/*.scss`, series("styles"));
+watch(`${SRC_PATH}/*.html`, series("copy:html"));
+watch(`${SRC_PATH}/scripts/*.js`, series('scripts'));
+watch(`${SRC_PATH}/images/icons/*.svg`, series('icons'));
 
-task("default", series("clean", "copy:html", "styles", "scripts", "server"));
+task(
+  "default", 
+  series("clean", "copy:html", "styles", "scripts", "icons", "server"));
