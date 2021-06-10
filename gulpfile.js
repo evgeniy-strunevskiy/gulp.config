@@ -6,6 +6,7 @@ const concat = require("gulp-concat");
 var browserSync = require('browser-sync').create();
 const reload = browserSync.reload
 const sassGlob = require('gulp-sass-glob');
+const autoprefixer = require('gulp-autoprefixer');
 
 task("clean", () => {
   return src("dist/**/*", { read: false }).pipe(rm());
@@ -29,6 +30,7 @@ task("styles", () => {
     .pipe(concat("main.scss"))
     .pipe(sassGlob())
     .pipe(sass().on("error", sass.logError))
+    .pipe(autoprefixer())
     .pipe(dest("dist"));
 });
 
