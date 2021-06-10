@@ -7,6 +7,7 @@ var browserSync = require('browser-sync').create();
 const reload = browserSync.reload
 const sassGlob = require('gulp-sass-glob');
 const autoprefixer = require('gulp-autoprefixer');
+var px2rem = require('gulp-smile-px2rem');
 
 task("clean", () => {
   return src("dist/**/*", { read: false }).pipe(rm());
@@ -31,6 +32,7 @@ task("styles", () => {
     .pipe(sassGlob())
     .pipe(sass().on("error", sass.logError))
     .pipe(autoprefixer())
+    .pipe(px2rem())
     .pipe(dest("dist"));
 });
 

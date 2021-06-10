@@ -21,6 +21,7 @@
     "node-sass": "^6.0.0"
   },
   "dependencies": {
+    "gulp-smile-px2rem": "^0.1.0",
     "normalize.css": "^8.0.1"
   }
 }
