@@ -306,5 +306,8 @@ template {
 header {
   color: #000; }
 
+.new {
+  color: blue; }
+
 .menu:hover {
   opacity: .5; }
