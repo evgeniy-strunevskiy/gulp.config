@@ -106,4 +106,4 @@ watch(`${SRC_PATH}/images/icons/*.svg`, series('icons'));
 
 task(
   "default", 
-  series("clean", "copy:html", "styles", "scripts", "icons", "server"));
+  series("clean", parallel("copy:html", "styles", "scripts", "icons"), "server"));
